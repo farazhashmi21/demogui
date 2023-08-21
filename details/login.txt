@@ -1,0 +1,6 @@
+Site Title: Demo GUI
+Username: adminfarazhashmi
+Password: rq$2DYMiPZFgdUPqW(
+Email Address: developerfaraz@yahoo.com
+Offifial URL: http://demogui/
+Login URL: http://demogui/wp-login.php/
