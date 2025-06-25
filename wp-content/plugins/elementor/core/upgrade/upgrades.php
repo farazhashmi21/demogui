@@ -7,9 +7,11 @@ use Elementor\Core\Experiments\Manager as Experiments_Manager;
 use Elementor\Core\Settings\Manager as SettingsManager;
 use Elementor\Core\Settings\Page\Manager as SettingsPageManager;
 use Elementor\Icons_Manager;
+use Elementor\Includes\Elements\Container;
 use Elementor\Modules\Usage\Module;
 use Elementor\Plugin;
 use Elementor\Tracker;
+use Elementor\App\Modules\ImportExport\Utils;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
@@ -24,7 +26,6 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @since 1.0.0
  */
 class Upgrades {
-	const ELEMENTOR_CONTAINER_GAP_UPDATES_REVERSED = 'elementor_container_gap_updates_reversed';
 
 	public static function _on_each_version( $updater ) {
 		self::recalc_usage_data( $updater );
@@ -404,7 +405,7 @@ class Upgrades {
 
 			// Clear WP cache for next step.
 			wp_cache_flush();
-		} // End foreach().
+		}
 	}
 
 	/**
@@ -479,7 +480,7 @@ class Upgrades {
 			$json_value = wp_slash( wp_json_encode( $data ) );
 
 			update_metadata( 'post', $post_id, '_elementor_data', $json_value );
-		} // End foreach().
+		}
 
 		return $updater->should_run_again( $post_ids );
 	}
@@ -515,7 +516,7 @@ class Upgrades {
 			}
 
 			$document->save_template_type();
-		} // End foreach().
+		}
 
 		return $updater->should_run_again( $post_ids );
 	}
@@ -529,7 +530,7 @@ class Upgrades {
 	}
 
 	/**
-	 * migrate Icon control string value to Icons control array value
+	 * Migrate Icon control string value to Icons control array value
 	 *
 	 * @param array $element
 	 * @param array $args
@@ -607,24 +608,6 @@ class Upgrades {
 
 		return $updater->should_run_again( $post_ids );
 	}
-
-	/**
-	 *  Update database to separate page from post.
-	 *
-	 * @param Updater $updater
-	 *
-	 * @return bool
-	 */
-	// Because the query is slow on large sites, temporary don't upgrade.
-	/*	public static function _v_2_7_0_rename_document_types_to_wp( $updater ) {
-		return self::rename_document_base_to_wp( $updater, 'post' ) || self::rename_document_base_to_wp( $updater, 'page' );
-	}*/
-
-	// Upgrade code was fixed & moved to _v_2_7_1_remove_old_usage_data.
-	/* public static function _v_2_7_0_remove_old_usage_data() {} */
-
-	// Upgrade code moved to _v_2_7_1_recalc_usage_data.
-	/* public static function _v_2_7_0_recalc_usage_data( $updater ) {} */
 
 	/**
 	 * Don't use the old data anymore.
@@ -728,16 +711,6 @@ class Upgrades {
 		return self::move_settings_to_kit( $callback, $updater );
 	}
 
-	public static function v_3_1_0_move_optimized_dom_output_to_experiments() {
-		$saved_option = get_option( 'elementor_optimized_dom_output' );
-
-		if ( $saved_option ) {
-			$new_option = 'enabled' === $saved_option ? Experiments_Manager::STATE_ACTIVE : Experiments_Manager::STATE_INACTIVE;
-
-			add_option( 'elementor_experiment-e_dom_optimization', $new_option );
-		}
-	}
-
 	public static function _v_3_2_0_migrate_breakpoints_to_new_system( $updater, $include_revisions = true ) {
 		$callback = function( $kit_id ) {
 			$kit = Plugin::$instance->documents->get( $kit_id );
@@ -834,6 +807,89 @@ class Upgrades {
 		}
 	}
 
+	public static function _v_3_16_0_container_updates( $updater ) {
+		$post_ids = self::get_post_ids_by_element_type( $updater, 'container' );
+
+		if ( empty( $post_ids ) ) {
+			return false;
+		}
+
+		foreach ( $post_ids as $post_id ) {
+			$document = Plugin::$instance->documents->get( $post_id );
+
+			if ( $document ) {
+				$data = $document->get_elements_data();
+			}
+
+			if ( empty( $data ) ) {
+				continue;
+			}
+
+			$data = self::iterate_containers( $data );
+
+			self::save_updated_document( $post_id, $data );
+		}
+	}
+
+	public static function _v_3_17_0_site_settings_updates() {
+		$options = [ 'elementor_active_kit', 'elementor_previous_kit' ];
+
+		foreach ( $options as $option_name ) {
+			self::maybe_add_gap_control_data( $option_name );
+		}
+	}
+
+	/**
+	 * Upgrade Elementor 3.26.0 - Delete old experiments from the DB.
+	 *
+	 * @since 3.26.0
+	 * @static
+	 * @access public
+	 */
+	public static function _v_3_26_0() {
+		delete_option( 'elementor_experiment-ai-layout' );
+		delete_option( 'elementor_experiment-block_editor_assets_optimize' );
+		delete_option( 'elementor_experiment-container_grid' );
+		delete_option( 'elementor_experiment-display-conditions' );
+		delete_option( 'elementor_experiment-e_dom_optimization' );
+		delete_option( 'elementor_experiment-e_global_styleguide' );
+		delete_option( 'elementor_experiment-e_image_loading_optimization' );
+		delete_option( 'elementor_experiment-e_lazyload' );
+		delete_option( 'elementor_experiment-e_optimized_assets_loading' );
+		delete_option( 'elementor_experiment-e_optimized_css_loading' );
+		delete_option( 'elementor_experiment-e_scroll_snap' );
+		delete_option( 'elementor_experiment-floating-buttons' );
+		delete_option( 'elementor_experiment-form-submissions' );
+		delete_option( 'elementor_experiment-link-in-bio' );
+		delete_option( 'elementor_experiment-loop' );
+		delete_option( 'elementor_experiment-notes' );
+		delete_option( 'elementor_experiment-off-canvas' );
+		delete_option( 'elementor_experiment-page-transitions' );
+		delete_option( 'elementor_experiment-search' );
+		delete_option( 'elementor_experiment-taxonomy-filter' );
+	}
+
+	private static function maybe_add_gap_control_data( $option_name ) {
+		$kit_id = get_option( $option_name );
+
+		if ( ! $kit_id ) {
+			return;
+		}
+
+		$kit_data_array = get_post_meta( (int) $kit_id, '_elementor_page_settings', true );
+
+		$setting_not_exist = ! isset( $kit_data_array['space_between_widgets'] );
+		$already_processed = isset( $kit_data_array['space_between_widgets']['column'] );
+
+		if ( $setting_not_exist || $already_processed ) {
+			return;
+		}
+
+		$kit_data_array['space_between_widgets'] = Utils::update_space_between_widgets_values( $kit_data_array['space_between_widgets'] );
+
+		update_post_meta( (int) $kit_id, '_elementor_page_settings', $kit_data_array );
+	}
+
 	public static function remove_remote_info_api_data() {
 		global $wpdb;
 
@@ -885,5 +941,79 @@ class Upgrades {
 	private static function notice( $message ) {
 		$logger = Plugin::$instance->logger->get_logger();
 		$logger->notice( $message );
+	}
+
+	public static function get_post_ids_by_element_type( $updater, string $element_type ): array {
+		global $wpdb;
+
+		return $updater->query_col(
+			'SELECT `post_id`
+					FROM `' . $wpdb->postmeta . '`
+					WHERE `meta_key` = "_elementor_data"
+					AND `meta_value` LIKE \'%"elType":"' . $element_type . '"%\';'
+		);
+	}
+	/**
+	 * @param $data
+	 *
+	 * @return array|mixed
+	 */
+	private static function iterate_containers( $data ) {
+		return Plugin::$instance->db->iterate_data(
+			$data, function ( $element ) {
+
+				if ( 'container' !== $element['elType'] || ! isset( $element['elements'] ) ) {
+					return $element;
+				}
+
+				$element = self::maybe_convert_to_inner_container( $element );
+				$element = self::maybe_convert_to_grid_container( $element );
+				return Container::slider_to_gaps_converter( $element );
+			}
+		);
+	}
+
+	/**
+	 * @param $element
+	 *
+	 * @return array
+	 */
+	private static function maybe_convert_to_inner_container( $element ) {
+		foreach ( $element['elements'] as &$inner_element ) {
+			if ( 'container' === $inner_element['elType'] && ! $inner_element['isInner'] ) {
+				$inner_element['isInner'] = true;
+			}
+		}
+
+		return $element;
+	}
+
+	/**
+	 * @param $element
+	 *
+	 * @return array
+	 */
+	private static function maybe_convert_to_grid_container( $element ) {
+		$is_grid_container = isset( $element['settings']['container_type'] ) && 'grid' === $element['settings']['container_type'];
+		if ( 'container' !== $element['elType'] || empty( $element['settings'] ) || ! $is_grid_container ) {
+			return $element;
+		}
+
+		$element['settings']['presetTitle'] = 'Grid';
+		$element['settings']['presetIcon'] = 'eicon-container-grid';
+
+		return $element;
+	}
+
+	/**
+	 * @param $post_id
+	 * @param $data
+	 *
+	 * @return void
+	 */
+	private static function save_updated_document( $post_id, $data ) {
+		$json_value = wp_slash( wp_json_encode( $data ) );
+
+		update_metadata( 'post', $post_id, '_elementor_data', $json_value );
 	}
 }

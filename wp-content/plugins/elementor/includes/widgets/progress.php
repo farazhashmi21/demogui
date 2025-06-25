@@ -73,6 +73,28 @@ class Widget_Progress extends Widget_Base {
 		return [ 'progress', 'bar' ];
 	}
 
+	protected function is_dynamic_content(): bool {
+		return false;
+	}
+
+	/**
+	 * Get style dependencies.
+	 *
+	 * Retrieve the list of style dependencies the widget requires.
+	 *
+	 * @since 3.24.0
+	 * @access public
+	 *
+	 * @return array Widget style dependencies.
+	 */
+	public function get_style_depends(): array {
+		return [ 'widget-progress' ];
+	}
+
+	public function has_widget_inner_wrapper(): bool {
+		return ! Plugin::$instance->experiments->is_feature_active( 'e_optimized_markup' );
+	}
+
 	/**
 	 * Register progress widget controls.
 	 *
@@ -127,17 +149,34 @@ class Widget_Progress extends Widget_Base {
 		);
 
 		$this->add_control(
+			'title_display',
+			[
+				'label' => esc_html__( 'Display Title', 'elementor' ),
+				'type' => Controls_Manager::SWITCHER,
+				'label_on' => esc_html__( 'Show', 'elementor' ),
+				'label_off' => esc_html__( 'Hide', 'elementor' ),
+				'default' => 'yes',
+				'condition' => [
+					'title!' => '',
+				],
+			]
+		);
+
+		$this->add_control(
 			'progress_type',
 			[
 				'label' => esc_html__( 'Type', 'elementor' ),
 				'type' => Controls_Manager::SELECT,
-				'default' => '',
 				'options' => [
 					'' => esc_html__( 'Default', 'elementor' ),
 					'info' => esc_html__( 'Info', 'elementor' ),
 					'success' => esc_html__( 'Success', 'elementor' ),
 					'warning' => esc_html__( 'Warning', 'elementor' ),
 					'danger' => esc_html__( 'Danger', 'elementor' ),
+				],
+				'default' => '',
+				'condition' => [
+					'progress_type!' => '', // a workaround to hide the control, unless it's in use (not default).
 				],
 				'separator' => 'before',
 			]
@@ -155,6 +194,7 @@ class Widget_Progress extends Widget_Base {
 				'dynamic' => [
 					'active' => true,
 				],
+				'separator' => 'before',
 			]
 		);
 
@@ -181,15 +221,7 @@ class Widget_Progress extends Widget_Base {
 				'placeholder' => esc_html__( 'e.g. Web Designer', 'elementor' ),
 				'default' => esc_html__( 'Web Designer', 'elementor' ),
 				'label_block' => true,
-			]
-		);
-
-		$this->add_control(
-			'view',
-			[
-				'label' => esc_html__( 'View', 'elementor' ),
-				'type' => Controls_Manager::HIDDEN,
-				'default' => 'traditional',
+				'separator' => 'before',
 			]
 		);
 
@@ -233,6 +265,7 @@ class Widget_Progress extends Widget_Base {
 			[
 				'label' => esc_html__( 'Height', 'elementor' ),
 				'type' => Controls_Manager::SLIDER,
+				'size_units' => [ 'px', 'em', 'rem', 'custom' ],
 				'selectors' => [
 					'{{WRAPPER}} .elementor-progress-bar' => 'height: {{SIZE}}{{UNIT}}; line-height: {{SIZE}}{{UNIT}};',
 				],
@@ -348,14 +381,39 @@ class Widget_Progress extends Widget_Base {
 	protected function render() {
 		$settings = $this->get_settings_for_display();
 
+		if ( empty( $settings['title'] ) && empty( $settings['percent']['size'] ) ) {
+			return;
+		}
+
+		$progressbar_id = 'elementor-progress-bar-' . $this->get_id();
+
 		$progress_percentage = is_numeric( $settings['percent']['size'] ) ? $settings['percent']['size'] : '0';
 		if ( 100 < $progress_percentage ) {
 			$progress_percentage = 100;
 		}
 
-		$this->add_render_attribute( 'title', 'class', 'elementor-title' );
+		if ( ! Utils::is_empty( $settings['title'] ) ) {
 
-		$this->add_inline_editing_attributes( 'title' );
+			if ( 'yes' === $settings['title_display'] ) {
+
+				$this->add_render_attribute(
+					'title',
+					[
+						'class' => 'elementor-title',
+						'id' => $progressbar_id,
+					]
+				);
+
+				$this->add_inline_editing_attributes( 'title' );
+
+				$this->add_render_attribute( 'wrapper', 'aria-labelledby', $progressbar_id );
+
+			} else {
+
+				$this->add_render_attribute( 'wrapper', 'aria-label', $settings['title'] );
+
+			}
+		}
 
 		$this->add_render_attribute(
 			'wrapper',
@@ -388,15 +446,15 @@ class Widget_Progress extends Widget_Base {
 
 		$this->add_inline_editing_attributes( 'inner_text' );
 
-		if ( ! Utils::is_empty( $settings['title'] ) ) { ?>
+		if ( ! Utils::is_empty( $settings['title'] ) && 'yes' === $settings['title_display'] ) { ?>
 			<<?php Utils::print_validated_html_tag( $settings['title_tag'] ); ?> <?php $this->print_render_attribute_string( 'title' ); ?>>
-				<?php $this->print_unescaped_setting( 'title' ); ?>
+				<?php echo wp_kses_post( $settings['title'] ); ?>
 			</<?php Utils::print_validated_html_tag( $settings['title_tag'] ); ?>>
 		<?php } ?>
 
 		<div <?php $this->print_render_attribute_string( 'wrapper' ); ?>>
 			<div <?php $this->print_render_attribute_string( 'progress-bar' ); ?>>
-				<span <?php $this->print_render_attribute_string( 'inner_text' ); ?>><?php $this->print_unescaped_setting( 'inner_text' ); ?></span>
+				<span <?php $this->print_render_attribute_string( 'inner_text' ); ?>><?php echo wp_kses_post( $settings['inner_text'] ); ?></span>
 				<?php if ( 'show' === $settings['display_percentage'] ) { ?>
 					<span class="elementor-progress-percentage"><?php echo $progress_percentage; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>%</span>
 				<?php } ?>
@@ -416,16 +474,40 @@ class Widget_Progress extends Widget_Base {
 	protected function content_template() {
 		?>
 		<#
+		if ( '' === settings.title && '' === settings.percent.size ) {
+			return;
+		}
+
 		const title_tag = elementor.helpers.validateHTMLTag( settings.title_tag );
+		const progressbar_id = 'elementor-progress-bar-<?php echo esc_attr( $this->get_id() ); ?>';
 
 		let progress_percentage = 0;
 		if ( ! isNaN( settings.percent.size ) ) {
 			progress_percentage = 100 < settings.percent.size ? 100 : settings.percent.size;
 		}
 
-		view.addRenderAttribute( 'title', 'class', 'elementor-title' );
+		if ( settings.title ) {
 
-		view.addInlineEditingAttributes( 'title' );
+			if ( 'yes' === settings.title_display ) {
+
+				view.addRenderAttribute(
+					'title',
+					{
+						'class': 'elementor-title',
+						'id': progressbar_id,
+					}
+				);
+
+				view.addInlineEditingAttributes( 'title' );
+
+				view.addRenderAttribute( 'progressWrapper', 'aria-labelledby', progressbar_id );
+
+			} else {
+
+				view.addRenderAttribute( 'progressWrapper', 'aria-label', settings.title );
+
+			}
+		}
 
 		view.addRenderAttribute(
 			'progressWrapper',
@@ -446,12 +528,12 @@ class Widget_Progress extends Widget_Base {
 
 		view.addInlineEditingAttributes( 'inner_text' );
 		#>
-		<# if ( settings.title ) { #>
-			<{{ title_tag }} {{{ view.getRenderAttributeString( 'title' ) }}}>{{{ settings.title }}}</{{ title_tag }}>
+		<# if ( settings.title && 'yes' === settings.title_display  ) { #>
+			<{{ title_tag }} {{{ view.getRenderAttributeString( 'title' ) }}}>{{ settings.title }}</{{ title_tag }}>
 		<# } #>
 		<div {{{ view.getRenderAttributeString( 'progressWrapper' ) }}}>
 			<div class="elementor-progress-bar" data-max="{{ progress_percentage }}">
-				<span {{{ view.getRenderAttributeString( 'inner_text' ) }}}>{{{ settings.inner_text }}}</span>
+				<span {{{ view.getRenderAttributeString( 'inner_text' ) }}}>{{ settings.inner_text }}</span>
 				<# if ( 'show' === settings.display_percentage ) { #>
 					<span class="elementor-progress-percentage">{{{ progress_percentage }}}%</span>
 				<# } #>
