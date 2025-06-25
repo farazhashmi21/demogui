@@ -1,0 +1,145 @@
+
+Started Import Process
+# System Details: 
+Debug Mode 		: Disabled
+Operating System 	: WINNT
+Software 		: Microsoft-IIS/10.0
+MySQL version 		: 8.4.4
+XML Reader 		: Yes
+PHP Version 		: 8.4.5
+PHP Max Input Vars 	: 1000
+PHP Max Post Size 	: 1024M
+PHP Extension GD 	: Yes
+PHP Max Execution Time 	: 900
+Max Upload Size 	: 1 GB
+Memory Limit 		: Current memory limit 40M. We recommend setting memory to at least 64M.
+Timezone 		: 0
+
+-----
+
+Importing Started! - 15:13:59 UTC
+---
+
+WHY IMPORT PROCESS CAN FAIL? READ THIS - 
+https://wpastra.com/docs/?p=1314&utm_source=demo-import-panel&utm_campaign=import-error&utm_medium=wp-dashboard
+
+---
+
+Started Import Process
+# System Details: 
+Debug Mode 		: Disabled
+Operating System 	: WINNT
+Software 		: Microsoft-IIS/10.0
+MySQL version 		: 8.4.4
+XML Reader 		: Yes
+PHP Version 		: 8.4.5
+PHP Max Input Vars 	: 1000
+PHP Max Post Size 	: 1024M
+PHP Extension GD 	: Yes
+PHP Max Execution Time 	: 900
+Max Upload Size 	: 1 GB
+Memory Limit 		: Current memory limit 40M. We recommend setting memory to at least 64M.
+Timezone 		: 0
+
+-----
+
+Importing Started! - 15:26:23 UTC
+---
+
+WHY IMPORT PROCESS CAN FAIL? READ THIS - 
+https://wpastra.com/docs/?p=1314&utm_source=demo-import-panel&utm_campaign=import-error&utm_medium=wp-dashboard
+
+---
+
+Started Import Process
+# System Details: 
+Debug Mode 		: Disabled
+Operating System 	: WINNT
+Software 		: Microsoft-IIS/10.0
+MySQL version 		: 8.4.4
+XML Reader 		: Yes
+PHP Version 		: 8.4.5
+PHP Max Input Vars 	: 1000
+PHP Max Post Size 	: 1024M
+PHP Extension GD 	: Yes
+PHP Max Execution Time 	: 900
+Max Upload Size 	: 1 GB
+Memory Limit 		: Current memory limit 40M. We recommend setting memory to at least 64M.
+Timezone 		: 0
+
+-----
+
+Importing Started! - 15:26:45 UTC
+---
+
+WHY IMPORT PROCESS CAN FAIL? READ THIS - 
+https://wpastra.com/docs/?p=1314&utm_source=demo-import-panel&utm_campaign=import-error&utm_medium=wp-dashboard
+
+---
+
+Started Import Process
+# System Details: 
+Debug Mode 		: Disabled
+Operating System 	: WINNT
+Software 		: Microsoft-IIS/10.0
+MySQL version 		: 8.4.4
+XML Reader 		: Yes
+PHP Version 		: 8.4.5
+PHP Max Input Vars 	: 1000
+PHP Max Post Size 	: 1024M
+PHP Extension GD 	: Yes
+PHP Max Execution Time 	: 900
+Max Upload Size 	: 1 GB
+Memory Limit 		: Current memory limit 40M. We recommend setting memory to at least 64M.
+Timezone 		: 0
+
+-----
+
+Importing Started! - 15:26:55 UTC
+---
+
+WHY IMPORT PROCESS CAN FAIL? READ THIS - 
+https://wpastra.com/docs/?p=1314&utm_source=demo-import-panel&utm_campaign=import-error&utm_medium=wp-dashboard
+
+---
+
+Started Import Process
+# System Details: 
+Debug Mode 		: Disabled
+Operating System 	: WINNT
+Software 		: Microsoft-IIS/10.0
+MySQL version 		: 8.4.4
+XML Reader 		: Yes
+PHP Version 		: 8.4.5
+PHP Max Input Vars 	: 1000
+PHP Max Post Size 	: 1024M
+PHP Extension GD 	: Yes
+PHP Max Execution Time 	: 900
+Max Upload Size 	: 1 GB
+Memory Limit 		: Current memory limit 40M. We recommend setting memory to at least 64M.
+Timezone 		: 0
+
+-----
+
+Importing Started! - 15:27:03 UTC
+---
+
+WHY IMPORT PROCESS CAN FAIL? READ THIS - 
+https://wpastra.com/docs/?p=1314&utm_source=demo-import-panel&utm_campaign=import-error&utm_medium=wp-dashboard
+
+---
+
+There was an error on website: Uncaught Error
+Error: Failed opening required 'C:\inetpub\wwwroot\sites\projects\demogui\wp-content\plugins\wpforms-lite/src/Requirements/Requirements.php' (include_path='.;C:\php\pear') in C:\inetpub\wwwroot\sites\projects\demogui\wp-content\plugins\wpforms-lite\wpforms.php:235
+Stack trace:
+#0 C:\inetpub\wwwroot\sites\projects\demogui\wp-admin\includes\plugin.php(2387): include_once()
+#1 C:\inetpub\wwwroot\sites\projects\demogui\wp-admin\includes\plugin.php(673): plugin_sandbox_scrape('wpforms-lite/wp...')
+#2 C:\inetpub\wwwroot\sites\projects\demogui\wp-admin\plugins.php(60): activate_plugin('wpforms-lite/wp...', 'http://127.0.0....', false)
+#3 {main}
+There was an error on website: Uncaught Error
+Error: Failed opening required 'C:\inetpub\wwwroot\sites\projects\demogui\wp-content\plugins\wpforms-lite/src/Requirements/Requirements.php' (include_path='.;C:\php\pear') in C:\inetpub\wwwroot\sites\projects\demogui\wp-content\plugins\wpforms-lite\wpforms.php:235
+Stack trace:
+#0 C:\inetpub\wwwroot\sites\projects\demogui\wp-admin\includes\plugin.php(2387): include_once()
+#1 C:\inetpub\wwwroot\sites\projects\demogui\wp-admin\includes\plugin.php(673): plugin_sandbox_scrape('wpforms-lite/wp...')
+#2 C:\inetpub\wwwroot\sites\projects\demogui\wp-admin\plugins.php(60): activate_plugin('wpforms-lite/wp...', 'http://127.0.0....', false)
+#3 {main}
